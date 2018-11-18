@@ -24,18 +24,25 @@
 package io.github.opencubicchunks.cubicchunks.cubicgen;
 
 import io.github.opencubicchunks.cubicchunks.api.world.ICube;
+import io.github.opencubicchunks.cubicchunks.api.world.ICubeProvider;
 import io.github.opencubicchunks.cubicchunks.api.worldgen.ICubeGenerator;
 import io.github.opencubicchunks.cubicchunks.api.util.Box;
 import io.github.opencubicchunks.cubicchunks.api.util.Coords;
 import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.entity.EnumCreatureType;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.Biome.SpawnListEntry;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.chunk.IChunkProvider;
+import net.minecraftforge.fml.common.IWorldGenerator;
+import net.minecraftforge.fml.common.registry.GameRegistry;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -54,6 +61,35 @@ public abstract class BasicCubeGenerator implements ICubeGenerator {
 
     public BasicCubeGenerator(World world) {
         this.world = world;
+    }
+
+    HashSet<Long> queuedChunks = new HashSet<Long>();
+
+    /**
+     * Called By Generators who want to add support for full chunk populating
+     * @param rand
+     * @param x
+     * @param z
+     */
+    public void populateChunk(Random rand, int x, int z) {
+        Long posLong = ChunkPos.asLong(x,z);
+        if (!queuedChunks.contains(posLong) && !GameRegistry.worldGenerators.isEmpty())
+        {
+            IChunkProvider provider = world.getChunkProvider();
+            if (provider instanceof ICubeProvider) {
+                queuedChunks.add(posLong);
+                //Generate the Entire Column
+                for (int y = 0; y < 16; y++)
+                {
+                    ((ICubeProvider) provider).getCube(x, y, z);
+                }
+            }
+            for (IWorldGenerator worldGenerator : GameRegistry.worldGenerators)
+            {
+                worldGenerator.generate(rand, x, z, world, null, world.getChunkProvider());
+            }
+            queuedChunks.remove(posLong);
+        }
     }
 
     @Override

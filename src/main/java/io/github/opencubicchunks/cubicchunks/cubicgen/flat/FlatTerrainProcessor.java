@@ -38,6 +38,7 @@ import net.minecraftforge.common.MinecraftForge;
 
 import java.util.Map.Entry;
 import java.util.NavigableMap;
+import java.util.Random;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -92,9 +93,12 @@ public class FlatTerrainProcessor extends BasicCubeGenerator {
          * If event is not canceled we will use cube populators from registry.
          **/
         if (!MinecraftForge.EVENT_BUS.post(new CubePopulatorEvent(world, cube))) {
+            Random rand = Coords.coordsSeedRandom(cube.getWorld().getSeed(), cube.getX(), cube.getY(), cube.getZ());
             CubeGeneratorsRegistry.generateWorld(cube.getWorld(),
-                    Coords.coordsSeedRandom(cube.getWorld().getSeed(), cube.getX(), cube.getY(), cube.getZ()),
+                    rand,
                     cube.getCoords(), world.getBiome(cube.getCoords().getCenterBlockPos()));
+
+            populateChunk(rand, cube.getX(), cube.getZ());
         }
     }
 

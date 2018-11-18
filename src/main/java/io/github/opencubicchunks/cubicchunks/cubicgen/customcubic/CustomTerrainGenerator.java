@@ -216,7 +216,10 @@ public class CustomTerrainGenerator extends BasicCubeGenerator {
             strongholds.generateStructure(world, rand, pos);
             populators.get(cubicBiome.getBiome()).generate(world, rand, pos, cubicBiome.getBiome());
             MinecraftForge.EVENT_BUS.post(new PopulateCubeEvent.Post(world, rand, pos.getX(), pos.getY(), pos.getZ(), false));
-            CubeGeneratorsRegistry.generateWorld(world, rand, pos, cubicBiome.getBiome()); }
+            CubeGeneratorsRegistry.generateWorld(world, rand, pos, cubicBiome.getBiome());
+
+            populateChunk(rand, pos.getX(), pos.getZ());
+        }
     }
 
     @Override
